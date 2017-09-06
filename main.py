@@ -1327,9 +1327,9 @@ class ChatWarsAutomator(object):
             updates = tgupdate.updates
         elif hasattr(tgupdate, 'update'):
             updates = [tgupdate.update]
-        elif isinstance(tgupdate, telethon.tl.types.update_short_message.UpdateShortMessage):
+        elif isinstance(tgupdate, telethon.tl.types.UpdateShortMessage):
             updates = [tgupdate]
-        elif isinstance(tgupdate, telethon.tl.types.update_short_chat_message.UpdateShortChatMessage):
+        elif isinstance(tgupdate, telethon.tl.types.UpdateShortChatMessage):
             updates = [tgupdate]
         else:
             # print('Skipped TGUpdate of class %s: ' % tgupdate.__class__.__name__, tgupdate, dir(tgupdate))
