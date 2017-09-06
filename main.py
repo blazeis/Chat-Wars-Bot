@@ -16,18 +16,17 @@ from telethon.utils import get_input_peer
 from telethon.errors import SessionPasswordNeededError
 from telethon.utils import get_display_name
 from telethon.tl.types import UpdateShortChatMessage, UpdateShortMessage, InputPeerEmpty
-from telethon.tl.types.update_new_message import UpdateNewMessage
-from telethon.tl.types.update_edit_channel_message import UpdateEditChannelMessage
-from telethon.tl.types.update_chat_user_typing import UpdateChatUserTyping
-from telethon.tl.types.update_user_status import UpdateUserStatus
-from telethon.tl.types.update_read_history_inbox import UpdateReadHistoryInbox
-from telethon.tl.types.update_channel_pinned_message import UpdateChannelPinnedMessage
+from telethon.tl.types import UpdateNewMessage
+from telethon.tl.types import UpdateEditChannelMessage
+from telethon.tl.types import UpdateChatUserTyping
+from telethon.tl.types import UpdateUserStatus
+from telethon.tl.types import UpdateReadHistoryInbox
+from telethon.tl.types import UpdateChannelPinnedMessage
 from telethon.tl.functions.messages import GetFullChatRequest
 from telethon.tl.functions.messages import GetChatsRequest
 from telethon.tl.functions.messages import GetHistoryRequest, GetDialogsRequest
 from telethon.tl.functions.messages import ReceivedMessagesRequest
 from telethon.tl.functions.messages import ForwardMessageRequest
-from telethon.tl.functions.messages import get_messages
 from telethon.tl.functions.messages import GetInlineBotResultsRequest, SendInlineBotResultRequest, GetDialogsRequest, GetBotCallbackAnswerRequest
 from telethon.tl.functions.contacts import SearchRequest, ResolveUsernameRequest
 from telethon.tl.functions.channels import JoinChannelRequest, GetFullChannelRequest
@@ -56,15 +55,15 @@ pathname = os.path.dirname(sys.argv[0])
 fullpath = os.path.abspath(pathname)
 
 TOTALLY_IGNORED_MESSAGE_TYPES = [
-    telethon.tl.types.update_chat_user_typing.UpdateChatUserTyping,
-    telethon.tl.types.update_user_typing.UpdateUserTyping,
-    telethon.tl.types.update_user_status.UpdateUserStatus,
-    telethon.tl.types.update_read_history_inbox.UpdateReadHistoryInbox,
-    telethon.tl.types.update_read_history_outbox.UpdateReadHistoryOutbox,
-    telethon.tl.types.update_read_channel_inbox.UpdateReadChannelInbox,
-    telethon.tl.types.update_read_channel_outbox.UpdateReadChannelOutbox,
-    telethon.tl.types.update_delete_channel_messages.UpdateDeleteChannelMessages,
-    telethon.tl.types.update_draft_message.UpdateDraftMessage,
+    telethon.tl.types.UpdateChatUserTyping,
+    telethon.tl.types.UpdateUserTyping,
+    telethon.tl.types.UpdateUserStatus,
+    telethon.tl.types.UpdateReadHistoryInbox,
+    telethon.tl.types.UpdateReadHistoryOutbox,
+    telethon.tl.types.UpdateReadChannelInbox,
+    telethon.tl.types.UpdateReadChannelOutbox,
+    telethon.tl.types.UpdateDeleteChannelMessages,
+    telethon.tl.types.UpdateDraftMessage,
 ]
 
 api_id = 67656
