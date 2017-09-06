@@ -451,6 +451,7 @@ class ChatWarsAutomator(object):
         self.BLUEOYSTER_PROPS = self.find_props('BlueOysterBot')
         self.MARKET_PROPS     = self.find_props('ChatWarsMarket')
         self.ADMIN_PROPS      = self.find_props(admin_username)
+        sleep(2) #боремся с ошибкой 420
         self.GROUP_PROPS      = self.find_group_id(group_name)
         self.ALL_PROPS = [self.CHATWARS_PROPS, self.ADMIN_PROPS, self.CAPTCHA_PROPS, self.STOCKBOT_PROPS,
                           self.TRADEBOT_PROPS, self.REDSTAT_PROPS, self.REDSTAT2_PROPS, self.BLUEOYSTER_PROPS]
@@ -458,6 +459,7 @@ class ChatWarsAutomator(object):
         self.CHATWARS_ID = self.find_props_id('ChatWarsBot')
         self.TRADEBOT_ID = self.find_props_id('ChatWarsTradeBot')
         self.STOCKBOT_ID = self.find_props_id('PenguindrumStockBot')
+        sleep(2) #боремся с ошибкой 420
         self.chatwars_dialog  = self.find_dialog_user('ChatWarsBot')
         self.captcha_dialog   = self.find_dialog_user('ChatWarsCaptchaBot')
         self.redstat_dialog   = self.find_dialog_user('RedStatBot')
@@ -466,6 +468,7 @@ class ChatWarsAutomator(object):
         self.tradebot_dialog  = self.find_dialog_user('ChatWarsTradeBot')
         self.stockbot_dialog  = self.find_dialog_user('PenguindrumStockBot')
         self.market_dialog    = self.find_dialog_chat('ChatWarsMarket')
+        sleep(2) #боремся с ошибкой 420
         self.market_chat      = self.get_market_input_peer()
         if group_name is not None:
             self.admin_dialog = self.find_dialog(self.GROUP_PROPS)
@@ -1335,19 +1338,19 @@ class ChatWarsAutomator(object):
             if any(isinstance(upd, cls) for cls in TOTALLY_IGNORED_MESSAGE_TYPES):
                 # 100% ignored to not shit into console
                 continue
-            if isinstance(upd, telethon.tl.types.update_new_message.UpdateNewMessage):
+            if isinstance(upd, telethon.tl.types.UpdateNewMessage):
                 message = getattr(upd, 'message', None)
                 origin_id = getattr(message, 'from_id', None)
-            elif isinstance(upd, telethon.tl.types.update_short_message.UpdateShortMessage):
+            elif isinstance(upd, telethon.tl.types.UpdateShortMessage):
                 message = upd
                 origin_id = getattr(message, 'user_id', None)
-            elif isinstance(upd, telethon.tl.types.update_edit_message.UpdateEditMessage):
+            elif isinstance(upd, telethon.tl.types.UpdateEditMessage):
                 message = getattr(upd, 'message', None)
                 origin_id = getattr(message, 'from_id', None)
-            elif isinstance(upd, telethon.tl.types.update_short_chat_message.UpdateShortChatMessage):
+            elif isinstance(upd, telethon.tl.types.UpdateShortChatMessage):
                 message = upd
                 origin_id = getattr(message, 'from_id', None)  # Also field 'chat_id' is present
-            elif isinstance(upd, telethon.tl.types.update_new_channel_message.UpdateNewChannelMessage):
+            elif isinstance(upd, telethon.tl.types.UpdateNewChannelMessage):
                 message = getattr(upd, 'message', None)
                 origin_id = getattr(getattr(message, 'to_id'), 'channel_id')
                 if message is not None and getattr(message, 'message', None) is not None and message.message.find(self.bot_name) != -1 \
@@ -1366,7 +1369,7 @@ class ChatWarsAutomator(object):
                             self.log('Приняли трейд')
                         else:
                             self.log('Ответ на нажатие - ' + str(answer))
-            elif isinstance(upd, telethon.tl.types.update_edit_channel_message.UpdateEditChannelMessage):
+            elif isinstance(upd, telethon.tl.types.UpdateEditChannelMessage):
                 message = getattr(upd, 'message', None)
                 origin_id = getattr(getattr(message, 'to_id'), 'channel_id')
             elif isinstance(upd, UpdateChannelPinnedMessage):
