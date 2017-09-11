@@ -132,6 +132,7 @@ orders = {
     'peshera': '🕸Пещера',
     'quests': '🗺 Квесты',
     'castle_menu': '🏰Замок',
+    'exchange': '⚖Биржа',
     'lavka': '🏚Лавка',
     'snaraga': 'Снаряжение',
     'shlem': 'Шлем',
@@ -236,6 +237,7 @@ sender = Sender(sock=socket_path) if socket_path else Sender(host=host,port=port
 action_list = deque([])
 log_list = deque([], maxlen=30)
 lt_arena = 0
+trade_list = []
 get_info_diff = 360
 hero_message_id = 0
 report_message_id = 0
@@ -258,6 +260,12 @@ secondstock_enabled = False
 twinkstock_enabled = False
 trade_active = False
 report = False
+wait_for_save = False
+stock_save = False
+stock_extract = False
+lt_save = 0
+save_diff = 0
+autosave_list = ''
 arenafight = re.search('Поединков сегодня (\d+) из (\d+)', 'Поединков сегодня 0 из 0')
 victory = 0
 gold = 0
@@ -301,12 +309,15 @@ def work_with_message(receiver):
                 ifttt("bot_error", "coroutine", err)
             log('Ошибка coroutine: {0}'.format(err))
 
-            
 def queue_worker():
     global get_info_diff
     global lt_info
     global arena_delay
     global arena_delay_day
+    global stock_save
+    global wait_for_save
+    global save_diff
+    global lt_save
     global tz
     lt_info = 0
     # Бот не пишет незнакомым юзерам, пока не поищет их
@@ -344,6 +355,12 @@ def queue_worker():
             if len(action_list):
                 log('Отправляем ' + action_list[0])
                 send_msg('@', bot_username, action_list.popleft())
+            if wait_for_save == True:
+                if time() - lt_save > save_diff:
+                    wait_for_save = False
+                    if level >= 15:
+                        stock_save = True
+                        send_msg('@',trade_bot,'/start')
             sleep_time = random.randint(2, 5)
             sleep(sleep_time)
         except Exception as err:
@@ -372,6 +389,7 @@ def read_config():
     global non_arena_item_id
     global firststock_enabled
     global secondstock_enabled
+    global autosave_list
     section=str(bot_user_id)
     bot_enabled          = config.getboolean(section, 'bot_enabled')          if config.has_option(section, 'bot_enabled')          else bot_enabled
     arena_enabled        = config.getboolean(section, 'arena_enabled')        if config.has_option(section, 'arena_enabled')        else arena_enabled
@@ -391,6 +409,7 @@ def read_config():
     non_arena_item_id    = config.get       (section, 'non_arena_item_id')    if config.has_option(section, 'non_arena_item_id')    else non_arena_item_id
     firststock_enabled   = config.getboolean(section, 'firststock_enabled')   if config.has_option(section, 'firststock_enabled')   else firststock_enabled
     secondstock_enabled  = config.getboolean(section, 'secondstock_enabled')  if config.has_option(section, 'secondstock_enabled')  else secondstock_enabled
+    autosave_list        = config.get       (section, 'autosave_list')        if config.has_option(section, 'autosave_list')        else autosave_list
 
 def write_config():
     global config
@@ -411,6 +430,7 @@ def write_config():
     global arena_change_enabled
     global firststock_enabled
     global secondstock_enabled
+    global autosave_list
     section=str(bot_user_id)
     if config.has_section(section):
         config.remove_section(section)
@@ -433,8 +453,12 @@ def write_config():
     config.set(section, 'build_target', str(build_target))
     config.set(section, 'firststock_enabled', str(firststock_enabled))
     config.set(section, 'secondstock_enabled', str(secondstock_enabled))
+    config.set(section, 'autosave_list', str(autosave_list))
     with open(fullpath + '/bot_cfg/' + str(bot_user_id) + '.cfg','w+') as configfile:
         config.write(configfile)
+
+def autosave_res():
+    global autosave_list
 
 def parse_text(text, username, message_id):
     global lt_arena
@@ -486,7 +510,13 @@ def parse_text(text, username, message_id):
     global oyster_report_castles
     global firststock_enabled
     global secondstock_enabled
-
+    global trade_list
+    global autosave_list
+    global wait_for_save
+    global stock_save
+    global stock_extract
+    global lt_save
+    global save_diff
     if bot_enabled and username == bot_username:
         log('Получили сообщение от бота. Проверяем условия')
 
@@ -616,7 +646,7 @@ def parse_text(text, username, message_id):
         elif 'доволен.' in text:
             log('Поиграли с питомцем')
             last_pet_play = round(time())
-            
+
         elif text.find('Запас еды:') != -1:
             play_state = pet_char_states[re.search('⚽ (.+)', text).group(1)]
             food_state = pet_char_states[re.search('🍼 (.+)', text).group(1)]
@@ -631,7 +661,20 @@ def parse_text(text, username, message_id):
                 action_list.append(orders['pet_feed'])
             if wash_state <= 4:
                 action_list.append(orders['pet_wash'])
-        
+        elif text.find('Товары на продажу:') != -1:
+            for line in text.splitlines():
+                if line.find('/rm_') != -1:
+                    trade_list.append(line.split()[-1])
+            if len(trade_list) != 0:
+                action_list.extend(trade_list)
+            if stock_extract == True:
+                stock_extract = False
+            elif autosave_list != '':
+                #подождём отмены сделок
+                lt_save = time()
+                save_diff = 3 * random.randint(30, 40)
+                wait_for_save = True
+                log('Выждем, старые сделки отменяются: '+str(save_diff))
         elif text.find('Битва семи замков через') != -1:
             if castle_name is None:
                 castle_name = flags[re.search('(.{2}).*, .+ замка', text).group(1)]
@@ -685,6 +728,9 @@ def parse_text(text, username, message_id):
                                     action_list.append('/donate {0}'.format(gold - gold_to_left))
                                     gold -= gold_to_left
                         update_order(castle)
+                    if autosave_list != '' and time() - current_order['time'] > 1800 and ('Отдых' in state or 'Защита' in state or 'Атака' in state):
+                        action_list.append(orders['castle_menu'])
+                        action_list.append(orders['exchange'])
                     return
                 else:
                     # если битва через несколько секунд
@@ -812,6 +858,28 @@ def parse_text(text, username, message_id):
             action_list.append(text)
             bot_enabled = True
 
+    elif username == 'ChatWarsTradeBot' and stock_save == True:
+        log("ныкаем ресурсы на бирже")
+        stock_save = False
+        num = 0
+        fail = 0
+        for res_id in autosave_list.split(','):
+            if re.search('\/add_'+res_id+' ', text):
+                count = re.search('/add_'+res_id+'\D+(.*)', text).group(1)
+                if num < 5:
+                    action_list.append('/wts_'+res_id+'_'+str(count)+'_1000')
+                    log('Ныкаем '+str(count)+' шт. ресурса '+res_id)
+                else:
+                    log('Пытались приныкать '+str(count)+' шт. ресурса '+res_id+' но на бирже кончились слоты')
+                    fail+=1
+                num+=1
+            else:
+                log('На складе нет ресурса '+res_id)
+            if fail == 0:
+                send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций')
+            else:
+                send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций, потеряно '+str(fail)+' позиций')
+
     elif username == 'ChatWarsTradeBot' and twinkstock_enabled and (firststock_enabled or secondstock_enabled):
         if text.find('Твой склад с материалами') != -1:
             stock_id = message_id
@@ -923,6 +991,8 @@ def parse_text(text, username, message_id):
                     '#enable_second_stock - Включить отправку стока во второго стокбота(Капибара-банкир)',
                     '#disable_second_stock - Выключить отправку стока во второго стокбота(Капибара-банкир)',
                     '#report - Получить репорт с прошлой битвы',
+                    '#save - Дебаг, список ресурсов для сохранения на бирже через запятую',
+                    '#extract - Дебаг, вытащить ресурсы с биржи',
                     '#eval - Дебаг, выполнить запрос вручную'
                 ]))
 
@@ -1202,6 +1272,22 @@ def parse_text(text, username, message_id):
                 if level >= 15:
                     resource_id_list = text.split(' ')[1].split(',')
                     send_msg('@', trade_bot, '/start')
+                else:
+                    send_msg(pref, msg_receiver, 'Я еще не дорос, у меня только '+str(level)+' уровень')
+
+            elif text.startswith('#save'):
+                if level >= 15:
+                    autosave_list = text.split(' ')[1]
+                    write_config()
+                    send_msg(pref, msg_receiver, 'Список ресурсов для ныканья на бирже изменён. В нём '+str(len(autosave_list.split(',')))+' позиций')
+                else:
+                    send_msg(pref, msg_receiver, 'Я еще не дорос, у меня только '+str(level)+' уровень')
+            elif text.startswith('#extract'):
+                if level >= 15:
+                    send_msg(pref, msg_receiver, 'Извлекаем все ресурсы с биржи')
+                    action_list.append(orders['castle_menu'])
+                    action_list.append(orders['exchange'])
+                    stock_extract = True
                 else:
                     send_msg(pref, msg_receiver, 'Я еще не дорос, у меня только '+str(level)+' уровень')
 
