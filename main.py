@@ -457,9 +457,6 @@ def write_config():
     with open(fullpath + '/bot_cfg/' + str(bot_user_id) + '.cfg','w+') as configfile:
         config.write(configfile)
 
-def autosave_res():
-    global autosave_list
-
 def parse_text(text, username, message_id):
     global lt_arena
     global hero_message_id
@@ -991,8 +988,7 @@ def parse_text(text, username, message_id):
                     '#enable_second_stock - Включить отправку стока во второго стокбота(Капибара-банкир)',
                     '#disable_second_stock - Выключить отправку стока во второго стокбота(Капибара-банкир)',
                     '#report - Получить репорт с прошлой битвы',
-                    '#save - Дебаг, список ресурсов для сохранения на бирже через запятую',
-                    '#extract - Дебаг, вытащить ресурсы с биржи',
+                    '#save - Дебаг, список ресурсов для сохранения на бирже',
                     '#eval - Дебаг, выполнить запрос вручную'
                 ]))
 
