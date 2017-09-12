@@ -263,6 +263,7 @@ report = False
 wait_for_save = False
 stock_save = False
 stock_extract = False
+save_time = 0
 lt_save = 0
 save_diff = 0
 autosave_list = ''
@@ -514,6 +515,7 @@ def parse_text(text, username, message_id):
     global stock_extract
     global lt_save
     global save_diff
+    global save_time
     if bot_enabled and username == bot_username:
         log('Получили сообщение от бота. Проверяем условия')
 
@@ -725,9 +727,11 @@ def parse_text(text, username, message_id):
                                     action_list.append('/donate {0}'.format(gold - gold_to_left))
                                     gold -= gold_to_left
                         update_order(castle)
-                    if autosave_list != '' and time() - current_order['time'] > 1800 and ('Отдых' in state or 'Защита' in state or 'Атака' in state):
-                        action_list.append(orders['castle_menu'])
-                        action_list.append(orders['exchange'])
+                    if autosave_list != '' and ('Отдых' in state or 'Защита' in state or 'Атака' in state):
+                        if time() - save_time > 1800:
+                            action_list.append(orders['castle_menu'])
+                            action_list.append(orders['exchange'])
+                            save_time = time()
                     return
                 else:
                     # если битва через несколько секунд
@@ -872,10 +876,10 @@ def parse_text(text, username, message_id):
                 num+=1
             else:
                 log('На складе нет ресурса '+res_id)
-            if fail == 0:
-                send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций')
-            else:
-                send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций, потеряно '+str(fail)+' позиций')
+        if fail == 0:
+            send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций')
+        else:
+            send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций, потеряно '+str(fail)+' позиций')
 
     elif username == 'ChatWarsTradeBot' and twinkstock_enabled and (firststock_enabled or secondstock_enabled):
         if text.find('Твой склад с материалами') != -1:
