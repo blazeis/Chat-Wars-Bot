@@ -877,7 +877,7 @@ def parse_text(text, username, message_id):
             else:
                 log('На складе нет ресурса '+res_id)
         if fail == 0:
-            send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций')
+            log('Приныкано '+str(num)+' позиций')
         else:
             send_msg(pref, msg_receiver, 'Приныкано '+str(num)+' позиций, потеряно '+str(fail)+' позиций')
 
