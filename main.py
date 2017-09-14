@@ -666,6 +666,7 @@ def parse_text(text, username, message_id):
                     trade_list.append(line.split()[-1])
             if len(trade_list) != 0:
                 action_list.extend(trade_list)
+                trade_list = []
             if stock_extract == True:
                 stock_extract = False
             elif autosave_list != '':
