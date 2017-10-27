@@ -35,7 +35,7 @@ castle_name = None
 
 captcha_bot = 'ChatWarsCaptchaBot'
 
-stock_bot = 'PenguindrumStockBot'
+stock_bot = 'enotobot'
 stock2_bot = 'ChatWarsStock_bot'
 
 trade_bot = 'ChatWarsTradeBot'
@@ -124,8 +124,10 @@ orders = {
     'gorni_fort': '⛰Горный форт',
     'morskoi_fort': '⚓Морской форт',
     'gora': '⛰',
-    'cover': '🛡 Защита',
-    'attack': '⚔ Атака',
+#    'cover': '🛡 Защита',
+    'cover': '🛡Встретить гостей',
+#    'attack': '⚔ Атака',
+    'attack': '⚔Пойти в гости',
     'cover_symbol': '🛡',
     'hero': '🏅Герой',
     'corovan': '/go',
@@ -900,12 +902,10 @@ def parse_text(text, username, message_id):
                 count = re.search('/add_'+res_id+'\D+(.*)', text).group(1)
                 send_msg('@',trade_bot,'/add_'+res_id+' '+str(count))
                 log('Добавили '+str(count)+' шт. ресурса '+res_id)
-                send_msg(pref, msg_receiver, 'Добавлено '+str(count)+' шт. ресурса '+res_id)
                 sleep_time = random.randint(2, 5)
                 sleep(sleep_time)
             else:
                 log('На складе нет ресурса '+res_id)
-                send_msg(pref, msg_receiver, 'На складе нет ресурса '+res_id)
         resource_id_list=[]
         send_msg('@',trade_bot,'/done')
         log('Предложение готово')
@@ -993,8 +993,9 @@ def parse_text(text, username, message_id):
                     '#enable_second_stock - Включить отправку стока во второго стокбота(Капибара-банкир)',
                     '#disable_second_stock - Выключить отправку стока во второго стокбота(Капибара-банкир)',
                     '#report - Получить репорт с прошлой битвы',
-                    '#save - Дебаг, список ресурсов для сохранения на бирже',
-                    '#extract - Дебаг, извлечь ресурсы с биржи',
+                    '#save - Список ресурсов для сохранения на бирже',
+                    '#extract - Извлечь ресурсы с биржи',
+                    '#attach - привязать твинка в енотике(#attach /xxxxx)',
                     '#eval - Дебаг, выполнить запрос вручную'
                 ]))
 
@@ -1230,6 +1231,14 @@ def parse_text(text, username, message_id):
 
             elif text == '#get_info_diff':
                 send_msg(pref, msg_receiver, str(get_info_diff))
+
+            elif text.startswith('#attach'):
+                if firststock_enabled:
+                    command = text.split(' ')[1]
+                    send_msg('@', stock_bot, command)
+                    send_msg(pref, msg_receiver, 'Отправил команду привязки')
+                else:
+                    send_msg(pref, msg_receiver, 'Ты просишь меня привязаться к енотику, но он у тебя даже не включен!')
 
             elif text.startswith('#push_order'):
                 command = text.split(' ')[1]
