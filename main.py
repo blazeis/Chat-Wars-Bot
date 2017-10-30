@@ -265,6 +265,7 @@ report = False
 wait_for_save = False
 stock_save = False
 stock_extract = False
+autoupdate_stock = False
 save_time = 0
 lt_save = 0
 save_diff = 0
@@ -393,6 +394,7 @@ def read_config():
     global firststock_enabled
     global secondstock_enabled
     global autosave_list
+    global autoupdate_stock
     section=str(bot_user_id)
     bot_enabled          = config.getboolean(section, 'bot_enabled')          if config.has_option(section, 'bot_enabled')          else bot_enabled
     arena_enabled        = config.getboolean(section, 'arena_enabled')        if config.has_option(section, 'arena_enabled')        else arena_enabled
@@ -412,6 +414,7 @@ def read_config():
     non_arena_item_id    = config.get       (section, 'non_arena_item_id')    if config.has_option(section, 'non_arena_item_id')    else non_arena_item_id
     firststock_enabled   = config.getboolean(section, 'firststock_enabled')   if config.has_option(section, 'firststock_enabled')   else firststock_enabled
     secondstock_enabled  = config.getboolean(section, 'secondstock_enabled')  if config.has_option(section, 'secondstock_enabled')  else secondstock_enabled
+    autoupdate_stock     = config.getboolean(section, 'autoupdate_stock')     if config.has_option(section, 'autoupdate_stock')     else autoupdate_stock
     autosave_list        = config.get       (section, 'autosave_list')        if config.has_option(section, 'autosave_list')        else autosave_list
 
 def write_config():
@@ -434,6 +437,7 @@ def write_config():
     global firststock_enabled
     global secondstock_enabled
     global autosave_list
+    global autoupdate_stock
     section=str(bot_user_id)
     if config.has_section(section):
         config.remove_section(section)
@@ -457,6 +461,7 @@ def write_config():
     config.set(section, 'firststock_enabled', str(firststock_enabled))
     config.set(section, 'secondstock_enabled', str(secondstock_enabled))
     config.set(section, 'autosave_list', str(autosave_list))
+    config.set(section, 'autoupdate_stock', str(autoupdate_stock))
     with open(fullpath + '/bot_cfg/' + str(bot_user_id) + '.cfg','w+') as configfile:
         config.write(configfile)
 
@@ -518,6 +523,10 @@ def parse_text(text, username, message_id):
     global lt_save
     global save_diff
     global save_time
+    global autoupdate_stock
+
+
+
     if bot_enabled and username == bot_username:
         log('Получили сообщение от бота. Проверяем условия')
 
@@ -771,11 +780,11 @@ def parse_text(text, username, message_id):
 
                 if text.find('🛌Отдых') != -1 and arena_running:
                     arena_running = False
-                    
+
                 if re.search('Помощник:', text) is not None and pet_state == 'med' or pet_state == 'bad': 
                     log('Идем проверить питомца')
                     action_list.append('/pet')
-                
+
                 elif peshera_enabled and endurance >= 2 and level >= 7:
                     if les_enabled:
                         action_list.append(orders['quests'])
@@ -862,11 +871,21 @@ def parse_text(text, username, message_id):
             action_list.append(text)
             bot_enabled = True
 
+
     elif username == 'ChatWarsTradeBot' and stock_save == True:
         log("ныкаем ресурсы на бирже")
         stock_save = False
         num = 0
         fail = 0
+
+        if autoupdate_stock == True and (firststock_enabled or secondstock_enabled):
+            log("Обновляем сток в боте")
+            stock_id = message_id
+            if firststock_enabled:
+                fwd('@', stock_bot, stock_id)
+            if secondstock_enabled:
+                fwd('@', stock2_bot, stock_id)
+
         for res_id in autosave_list.split(','):
             if re.search('\/add_'+res_id+' ', text):
                 count = re.search('/add_'+res_id+'\D+(.*)', text).group(1)
@@ -995,6 +1014,8 @@ def parse_text(text, username, message_id):
                     '#report - Получить репорт с прошлой битвы',
                     '#save - Список ресурсов для сохранения на бирже',
                     '#extract - Извлечь ресурсы с биржи',
+                    '#enable_stock_autoupdate - Извлечь ресурсы с биржи',
+                    '#disable_stock_autoupdate - Извлечь ресурсы с биржи',
                     '#attach - привязать твинка в енотике(#attach /xxxxx)',
                     '#eval - Дебаг, выполнить запрос вручную'
                 ]))
@@ -1016,6 +1037,16 @@ def parse_text(text, username, message_id):
                 bot_enabled = False
                 write_config()
                 send_msg(pref, msg_receiver, 'Бот успешно выключен')
+
+            elif text == '#enable_stock_autoupdate':
+                autoupdate_stock = True
+                write_config()
+                send_msg(pref, msg_receiver, 'Автообновление стока включено')
+
+            elif text == '#disable_stock_autoupdate':
+                autoupdate_stock = False
+                write_config()
+                send_msg(pref, msg_receiver, 'Автообновление стока выключено')
 
             # отправка стока
             elif text == '#stock':
