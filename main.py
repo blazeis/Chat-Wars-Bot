@@ -844,7 +844,7 @@ def parse_text(text, username, message_id):
                 action_list.append(cover_chosen)
                 action_list.append(attack_chosen)
 
-        elif text.find('Победил воин') != -1 or text.find('Ничья') != -1:
+        elif text.find('Таблица победителей обновлена') != -1:
             lt_info = time()
             get_info_diff = random.randint(60, 120)
             log('Выключаем флаг - арена закончилась')
