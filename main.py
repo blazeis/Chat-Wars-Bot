@@ -124,10 +124,10 @@ orders = {
     'gorni_fort': '⛰Горный форт',
     'morskoi_fort': '⚓Морской форт',
     'gora': '⛰',
-#    'cover': '🛡 Защита',
-    'cover': '🛡Встретить гостей',
-#    'attack': '⚔ Атака',
-    'attack': '⚔Пойти в гости',
+    'cover': '🛡 Защита',
+#    'cover': '🛡Встретить гостей',
+    'attack': '⚔ Атака',
+#    'attack': '⚔Пойти в гости',
     'cover_symbol': '🛡',
     'hero': '🏅Герой',
     'corovan': '/go',
@@ -916,8 +916,10 @@ def parse_text(text, username, message_id):
     elif username == 'ChatWarsTradeBot' and len(resource_id_list)!= 0 and trade_active == False:
         log('добавляем ресурсы по списку..')
         trade_active = True
+        cnt = 0
         for res_id in resource_id_list:
             if re.search('\/add_'+res_id+' ', text):
+                cnt = cnt + 1
                 count = re.search('/add_'+res_id+'\D+(.*)', text).group(1)
                 send_msg('@',trade_bot,'/add_'+res_id+' '+str(count))
                 log('Добавили '+str(count)+' шт. ресурса '+res_id)
@@ -926,10 +928,13 @@ def parse_text(text, username, message_id):
             else:
                 log('На складе нет ресурса '+res_id)
         resource_id_list=[]
-        send_msg('@',trade_bot,'/done')
-        log('Предложение готово')
+        if cnt != 0:
+            send_msg('@',trade_bot,'/done')
+            log('Предложение готово')
+            send_msg(pref, msg_receiver, 'Предложение готово ')
+        else:
+            send_msg(pref, msg_receiver, 'Предложение пусто')
         trade_active = False
-        send_msg(pref, msg_receiver, 'Предложение готово ')
 
     else:
         if quest_fight_enabled and text.find('/fight') != -1 and level >= 15:
